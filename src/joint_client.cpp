@@ -24,23 +24,27 @@ namespace franka_tool_handover {
     int n_time_steps = trajectory.length();
     Eigen::MatrixXd mat_pos = trajectory.ys();
     Eigen::MatrixXd mat_vel = trajectory.yds();
-    Eigen::MatrixXd mat_impedance = trajectory.misc();
+    Eigen::MatrixXd mat_stiff = trajectory.misc();
+    // The damping is set for the system to be critically damped.
+    Eigen::MatrixXd mat_damp = 2 * mat_stiff.cwiseSqrt();
 
     assert(mat_pos.rows() == mat_vel.rows());
     for (int i = 0; i < n_time_steps; i++) {
       std::vector<double> vec_pos(mat_pos.cols());
       std::vector<double> vec_vel(mat_vel.cols());
-      std::vector<double> vec_impedance(mat_vel.cols());
+      std::vector<double> vec_stiff(mat_stiff.cols());
+      std::vector<double> vec_damp(mat_damp.cols());
+
       Eigen::Map<Eigen::VectorXd>(vec_pos.data(), mat_pos.cols()) = mat_pos.row(i);   
       Eigen::Map<Eigen::VectorXd>(vec_vel.data(), mat_vel.cols()) = mat_vel.row(i);
-      Eigen::Map<Eigen::VectorXd>(vec_impedance.data(), mat_impedance.cols()) = mat_impedance.row(i);     
+      Eigen::Map<Eigen::VectorXd>(vec_stiff.data(), mat_stiff.cols()) = mat_stiff.row(i);  
+      Eigen::Map<Eigen::VectorXd>(vec_damp.data(), mat_damp.cols()) = mat_damp.row(i);
+
       goal.joints[i].pos = vec_pos;
       goal.joints[i].vel = vec_vel;
-
       goal.joints[i].impedance.n = 7;
-      goal.joints[i].impedance.k = vec_impedance;
-      goal.joints[i].impedance.d = vec_impedance;
-      // The damping gain will be calculated from the proportional k 
+      goal.joints[i].impedance.k = vec_stiff;
+      goal.joints[i].impedance.d = vec_damp;
     }
     ac.sendGoal(goal);
 
