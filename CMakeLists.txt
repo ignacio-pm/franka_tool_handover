@@ -38,8 +38,6 @@ find_package( Boost 1.34 COMPONENTS filesystem system serialization REQUIRED)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 include_directories ( ${Boost_INCLUDE_DIRS} )
 
-include_directories ("/home/panda/Documents/Ignacio/dmpbbo/src/dmp")
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -161,6 +159,8 @@ include_directories(
 
 set(LIB_SOURCES
   src/joint_impedance_controller
+  src/joint_action_server
+  src/joint_client
 )
 
 add_library(franka_tool_handover
