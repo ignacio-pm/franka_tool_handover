@@ -1,0 +1,7 @@
+<library path="lib/libfranka_tool_handover">
+  <class name="franka_tool_handover/JointImpedanceController" type="franka_tool_handover::JointImpedanceController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that tracks a cartesian path with a joint impedance controller that compensates coriolis torques.
+    </description>
+  </class>
+</library>
