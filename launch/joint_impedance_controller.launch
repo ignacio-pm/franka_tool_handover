@@ -7,6 +7,7 @@
     <arg name="load_gripper" value="$(arg load_gripper)" />
   </include>
 
+  <node pkg="franka_tool_handover" name="JointAS" type="node"/>
   <rosparam command="load" file="$(find franka_tool_handover)/config/franka_handover_controllers.yaml" />
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="joint_impedance_controller"/>
 </launch>

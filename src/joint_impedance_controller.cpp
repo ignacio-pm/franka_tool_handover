@@ -4,19 +4,21 @@
 
 #include <cmath>
 #include <memory>
+#include <boost/array.hpp>
 
 #include <controller_interface/controller_base.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <franka_tool_handover/JointImpedanceAction.h>
+#include <franka_msgs/SetLoad.h>
 
 #include <franka/robot_state.h>
 
 namespace franka_tool_handover {
 
 bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
-                                           ros::NodeHandle& node_handle) {
+                                           ros::NodeHandle& node_handle) {                                       
   std::string arm_id;
   if (!node_handle.getParam("arm_id", arm_id)) {
     ROS_ERROR("JointImpedanceController: Could not read parameter arm_id");
@@ -110,14 +112,15 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
 
   command_sub = node_handle.subscribe("command", 100, &JointImpedanceController::commandCallback, 
                   this, ros::TransportHints().reliable().tcpNoDelay());
-
-  std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0);
+  setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("setLoad", true);
+  ROS_INFO("JointImpedanceController: Finished init");       
 
   return true;
 }
 
-void JointImpedanceController::starting(const ros::Time& /*time*/) {
+void JointImpedanceController::starting(const ros::Time& /*time*/) { 
   franka::RobotState robot_state = state_handle_->getRobotState();
+  auto pos = robot_state.q;
   for (size_t i = 0; i < 7; i++)
     {
       q_d[i] = robot_state.q[i];
@@ -125,11 +128,18 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
       k_gains_[i] = k_init_[i];
       d_gains_[i] = d_init_[i];
     }
+  if(setLoadClient) {
+    franka_msgs::SetLoad setLoaddata;
+    setLoaddata.request.mass = 0.770;
+    setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.05, -3, 80} };
+    setLoaddata.request.load_inertia = boost::array<double,9> { {0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001} };
+    setLoadClient.call(setLoaddata);
+  }
+  ROS_INFO("JointImpedanceController: Started");   
 }
 
 void JointImpedanceController::update(const ros::Time& /*time*/,
                                              const ros::Duration& period) {
-
   franka::RobotState robot_state = state_handle_->getRobotState();
   std::array<double, 7> coriolis = model_handle_->getCoriolis();
   std::array<double, 7> gravity = model_handle_->getGravity();
@@ -169,10 +179,7 @@ std::array<double, 7> JointImpedanceController::saturateTorqueRate(
 
 void JointImpedanceController::commandCallback(const robot_module_msgs::JointCommandConstPtr &msg) {
   franka::RobotState robot_state = state_handle_->getRobotState();
-  auto last_q_target = q_d;
-
-
-    // read new target
+    // Print new target from the subscriber node command
     ROS_DEBUG("-------------------------------------");
     ROS_DEBUG("positions: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
     msg->pos[0], msg->pos[1], msg->pos[2], msg->pos[3], msg->pos[4], msg->pos[5], msg->pos[6]);
