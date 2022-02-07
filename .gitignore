@@ -1,1 +1,5 @@
 build/
+__pycache__/
+.vscode/
+*.pyc
+trajectory.txt
