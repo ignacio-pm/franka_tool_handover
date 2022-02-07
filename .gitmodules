@@ -1,0 +1,3 @@
+[submodule "dmpbbo"]
+	path = dmpbbo
+	url = https://github.com/stulp/dmpbbo.git
