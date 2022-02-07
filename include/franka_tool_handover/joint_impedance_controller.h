@@ -16,6 +16,7 @@
 #include <franka_hw/franka_cartesian_command_interface.h>
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/trigger_rate.h>
+#include <franka_msgs/SetLoad.h>
 
 #include <robot_module_msgs/JointCommand.h>
 
@@ -46,8 +47,8 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   double coriolis_factor_{1.0};
   static constexpr double kDeltaTauMax{1.0};
 
-  std::vector<double> k_gains_;
-  std::vector<double> d_gains_;
+  std::array<double, 7> k_gains_;
+  std::array<double, 7> d_gains_;
   std::array<double, 7> dq_filtered_;
   std::array<double, 7> q_d;
   std::array<double, 7> dq_d;
@@ -58,6 +59,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   std::array<double, 7> last_tau_d_{};
 
   ros::Subscriber command_sub;
+  ros::ServiceClient setLoadClient;
 };
 
 }  // namespace franka_tool_handover
