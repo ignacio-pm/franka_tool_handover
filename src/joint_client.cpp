@@ -11,15 +11,19 @@ using namespace Eigen;
 namespace franka_tool_handover {
 
   int JointAction::executeClient (DmpBbo::Trajectory trajectory) {
+    ROS_INFO("Inside executeClient.");
+    int argc;
+    char **argv;
+    ros::init(argc, argv, "jointClient");
     // create the action client
     // true causes the client to spin its own thread
-    actionlib::SimpleActionClient<franka_tool_handover::JointImpedanceAction> ac("joint_trajectory", true);
-    ROS_DEBUG("Waiting for joint action server to start.");
+    actionlib::SimpleActionClient<franka_tool_handover::JointImpedanceAction> ac("JointAS", true);
+    ROS_INFO("Waiting for joint action server to start.");
     // wait for the action server to start
     ac.waitForServer(); //will wait for infinite time
 
-    ROS_DEBUG("Joint action server started, sending goal.");
-    // send a goal to the action
+    ROS_INFO("Joint action server started, sending goal.");
+    // send a Joint Impedance goal to the action
     franka_tool_handover::JointImpedanceGoal goal;
     int n_time_steps = trajectory.length();
     Eigen::MatrixXd mat_pos = trajectory.ys();
@@ -29,22 +33,27 @@ namespace franka_tool_handover {
     Eigen::MatrixXd mat_damp = 2 * mat_stiff.cwiseSqrt();
 
     assert(mat_pos.rows() == mat_vel.rows());
+    ROS_INFO_STREAM(n_time_steps);
     for (int i = 0; i < n_time_steps; i++) {
       std::vector<double> vec_pos(mat_pos.cols());
       std::vector<double> vec_vel(mat_vel.cols());
       std::vector<double> vec_stiff(mat_stiff.cols());
       std::vector<double> vec_damp(mat_damp.cols());
 
-      Eigen::Map<Eigen::VectorXd>(vec_pos.data(), mat_pos.cols()) = mat_pos.row(i);   
+      Eigen::Map<Eigen::VectorXd>(vec_pos.data(), mat_pos.cols()) = mat_pos.row(i);  
       Eigen::Map<Eigen::VectorXd>(vec_vel.data(), mat_vel.cols()) = mat_vel.row(i);
       Eigen::Map<Eigen::VectorXd>(vec_stiff.data(), mat_stiff.cols()) = mat_stiff.row(i);  
       Eigen::Map<Eigen::VectorXd>(vec_damp.data(), mat_damp.cols()) = mat_damp.row(i);
 
-      goal.joints[i].pos = vec_pos;
-      goal.joints[i].vel = vec_vel;
-      goal.joints[i].impedance.n = 7;
-      goal.joints[i].impedance.k = vec_stiff;
-      goal.joints[i].impedance.d = vec_damp;
+      robot_module_msgs::JointCommand singleCommand;
+
+      singleCommand.pos = vec_pos;
+      singleCommand.vel = vec_vel;
+      singleCommand.impedance.n = 7;
+      singleCommand.impedance.k = vec_stiff;
+      singleCommand.impedance.d = vec_damp;
+
+      goal.joints.push_back(singleCommand);
     }
     ac.sendGoal(goal);
 
@@ -54,10 +63,10 @@ namespace franka_tool_handover {
     if (finished_before_timeout)
     {
       actionlib::SimpleClientGoalState state = ac.getState();
-      ROS_DEBUG("Rollout finished: %s",state.toString().c_str());
+      ROS_INFO("Rollout finished: %s",state.toString().c_str());
     }
     else
-      ROS_DEBUG("Rollout did not finish before the time out.");
+      ROS_INFO("Rollout did not finish before the time out.");
 
     //exit
     return 0;

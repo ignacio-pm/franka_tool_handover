@@ -69,11 +69,10 @@ include_directories ( ${Boost_INCLUDE_DIRS} )
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  CostVariables.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -157,12 +156,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/dmpbbo/src
 )
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dmpbbo)
 
 set(LIB_SOURCES
   src/joint_impedance_controller
-  src/joint_action_server
   src/joint_client
-)
+  )
 
 add_library(franka_tool_handover
  ${LIB_SOURCES}
@@ -176,6 +175,9 @@ add_dependencies(franka_tool_handover
 )
 
 target_link_libraries(franka_tool_handover PUBLIC
+  dmp 
+  functionapproximators 
+  dynamicalsystems
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -215,6 +217,27 @@ target_link_libraries(${PROJECT_NAME}_node PUBLIC
   ${catkin_LIBRARIES}
 )
 add_dependencies(${PROJECT_NAME}_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+add_executable(${PROJECT_NAME}_rollout src/robotPerformRollout.cpp)
+
+set_target_properties(${PROJECT_NAME}_rollout PROPERTIES OUTPUT_NAME rollout PREFIX "")
+
+target_include_directories(${PROJECT_NAME}_rollout PUBLIC
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+target_link_libraries(${PROJECT_NAME}_rollout PUBLIC
+  dmp 
+  functionapproximators 
+  dynamicalsystems
+  franka_tool_handover
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+add_dependencies(${PROJECT_NAME}_rollout
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
