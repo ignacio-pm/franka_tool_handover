@@ -47,6 +47,7 @@ namespace franka_tool_handover {
 
   void JointAction::statesCallback(const sensor_msgs::JointState::ConstPtr &msg) {
     joint_states_.position = msg->position;
+    joint_states_.velocity = msg->velocity;
   }
 
 } // namespace franka_tool_handover

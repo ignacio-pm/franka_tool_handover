@@ -5,6 +5,7 @@
 #include <cmath>
 #include <memory>
 #include <boost/array.hpp>
+#include <boost/range/algorithm.hpp>
 
 #include <controller_interface/controller_base.h>
 #include <pluginlib/class_list_macros.h>
@@ -110,9 +111,10 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
     }
   }
 
-  command_sub = node_handle.subscribe("command", 100, &JointImpedanceController::commandCallback, 
+  command_sub = node_handle.subscribe("/joint_command", 100, &JointImpedanceController::commandCallback, 
                   this, ros::TransportHints().reliable().tcpNoDelay());
   setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("setLoad", true);
+  cost_publisher_.init(node_handle, "/cost_vars", 1);
   ROS_INFO("JointImpedanceController: Finished init");       
 
   return true;
@@ -131,8 +133,8 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
   if(setLoadClient) {
     franka_msgs::SetLoad setLoaddata;
     setLoaddata.request.mass = 0.770;
-    setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.05, -3, 80} };
-    setLoaddata.request.load_inertia = boost::array<double,9> { {0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001} };
+    setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.005, -0.003, 0.08} };
+    setLoaddata.request.load_inertia = boost::array<double,9> { {8.38e-3, -1.54e-4, -3.44e-5, -1.54e-4, 7.46e-4, -5.49e-6, -3.44e-5, -5.49e-6, 8.78e-3} };
     setLoadClient.call(setLoaddata);
   }
   ROS_INFO("JointImpedanceController: Started");   
@@ -142,11 +144,18 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
                                              const ros::Duration& period) {
   franka::RobotState robot_state = state_handle_->getRobotState();
   std::array<double, 7> coriolis = model_handle_->getCoriolis();
+
+  // force_z = robot_state.K_F_ext_hat_K[2];
+
+  // if(setLoadClient && force_z > 9.81 * weight_tool_) {
+  //   franka_msgs::SetLoad setLoaddata;
+  //   setLoaddata.request.mass = 0.770 + weight_tool_;
+  //   setLoadClient.call(setLoaddata);
+  // }
   std::array<double, 7> gravity = model_handle_->getGravity();
 
   std::array<double, 7> tau_d_calculated;
 
-  // Squared root: std::transform(Array1.begin(), Array1.end(), Array1.begin(), (double(*)(double)) sqrt);
   for (size_t i = 0; i < 7; ++i) {
     tau_d_calculated[i] = coriolis_factor_ * coriolis[i] +
                           k_gains_[i] * (q_d[i] - robot_state.q[i]) +
@@ -159,6 +168,12 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
 
   for (size_t i = 0; i < 7; ++i) {
     joint_handles_[i].setCommand(tau_d_saturated[i]);
+  }
+
+  if (rate_trigger_() && cost_publisher_.trylock()) {
+    boost::range::copy(robot_state.K_F_ext_hat_K, cost_publisher_.msg_.wrenches.begin());
+    boost::range::copy(robot_state.tau_J, cost_publisher_.msg_.effort.begin());
+    cost_publisher_.unlockAndPublish();
   }
 
   for (size_t i = 0; i < 7; ++i) {
@@ -178,27 +193,29 @@ std::array<double, 7> JointImpedanceController::saturateTorqueRate(
 }
 
 void JointImpedanceController::commandCallback(const robot_module_msgs::JointCommandConstPtr &msg) {
-  franka::RobotState robot_state = state_handle_->getRobotState();
-    // Print new target from the subscriber node command
-    ROS_DEBUG("-------------------------------------");
-    ROS_DEBUG("positions: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
-    msg->pos[0], msg->pos[1], msg->pos[2], msg->pos[3], msg->pos[4], msg->pos[5], msg->pos[6]);
-    ROS_DEBUG("velocities: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
-    msg->vel[0], msg->vel[1], msg->vel[2], msg->vel[3], msg->vel[4], msg->vel[5], msg->vel[6]);
-    ROS_DEBUG("stiffness: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
-    msg->impedance.k[0], msg->impedance.k[1], msg->impedance.k[2], msg->impedance.k[3], 
-    msg->impedance.k[4], msg->impedance.k[5], msg->impedance.k[6]);
-    ROS_DEBUG("damping: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
-    msg->impedance.d[0], msg->impedance.d[1], msg->impedance.d[2], msg->impedance.d[3], 
-    msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
+  // Print new target from the subscriber node command
+  ROS_DEBUG("-------------------------------------");
+  ROS_DEBUG("positions: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
+  msg->pos[0], msg->pos[1], msg->pos[2], msg->pos[3], msg->pos[4], msg->pos[5], msg->pos[6]);
+  ROS_DEBUG("velocities: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
+  msg->vel[0], msg->vel[1], msg->vel[2], msg->vel[3], msg->vel[4], msg->vel[5], msg->vel[6]);
+  ROS_DEBUG("stiffness: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
+  msg->impedance.k[0], msg->impedance.k[1], msg->impedance.k[2], msg->impedance.k[3], 
+  msg->impedance.k[4], msg->impedance.k[5], msg->impedance.k[6]);
+  ROS_DEBUG("damping: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
+  msg->impedance.d[0], msg->impedance.d[1], msg->impedance.d[2], msg->impedance.d[3], 
+  msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
 
-    for (size_t i = 0; i < 7; i++)
-    {
-      q_d[i] = msg->pos[i];
-      dq_d[i] = msg->vel[i];
-      k_gains_[i] = msg->impedance.k[i];
-      d_gains_[i] = msg->impedance.d[i];
+  for (size_t i = 0; i < 7; i++)
+  {
+    if(msg->vel[i] > 2.62) {
+      ROS_WARN("Velocity over limit.");
     }
+    q_d[i] = msg->pos[i];
+    dq_d[i] = msg->vel[i];
+    k_gains_[i] = msg->impedance.k[i];
+    d_gains_[i] = msg->impedance.d[i];
+  }
 }
 
 }  // namespace franka_tool_handover

@@ -19,6 +19,7 @@
 #include <franka_msgs/SetLoad.h>
 
 #include <robot_module_msgs/JointCommand.h>
+#include <franka_tool_handover/CostVariables.h>
 
 namespace franka_tool_handover {
 
@@ -45,6 +46,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   double vel_max_{0.05};
   double vel_current_{0.0};
   double coriolis_factor_{1.0};
+  double weight_tool_{0.500};
   static constexpr double kDeltaTauMax{1.0};
 
   std::array<double, 7> k_gains_;
@@ -60,6 +62,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
 
   ros::Subscriber command_sub;
   ros::ServiceClient setLoadClient;
+  realtime_tools::RealtimePublisher<CostVariables> cost_publisher_;
 };
 
 }  // namespace franka_tool_handover
