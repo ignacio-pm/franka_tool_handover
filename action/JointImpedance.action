@@ -2,8 +2,8 @@
 robot_module_msgs/JointCommand[] joints
 ---
 #result definition
-sensor_msgs/JointState final_joints
+franka_tool_handover/CostVariables final_cost
 bool fully_succeeded
 ---
 #feedback
-sensor_msgs/JointState joints
+franka_tool_handover/CostVariables cost_vars

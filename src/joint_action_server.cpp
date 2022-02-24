@@ -18,7 +18,7 @@ namespace franka_tool_handover {
   JointAction::~JointAction(void){}
 
   void JointAction::executeCB(const franka_tool_handover::JointImpedanceGoalConstPtr &goal) {
-    ros::Rate r(100);
+    ros::Rate r(1000);
     bool success = true;
 
     for(const auto &command : goal->joints) {
@@ -32,22 +32,24 @@ namespace franka_tool_handover {
       }
 
       command_pub.publish(command);
-      feedback_.feedback.joints = joint_states_;
+      feedback_.feedback.cost_vars = cost_vars_;
       as_.publishFeedback(feedback_.feedback);
       r.sleep();
     }
 
     if(success) {
-      result_.result.final_joints = joint_states_;
+      result_.result.final_cost = cost_vars_;
       result_.result.fully_succeeded = true;
       as_.setSucceeded(result_.result);
     }
 
   }
 
-  void JointAction::statesCallback(const sensor_msgs::JointState::ConstPtr &msg) {
-    joint_states_.position = msg->position;
-    joint_states_.velocity = msg->velocity;
+  void JointAction::statesCallback(const franka_msgs::FrankaStateConstPtr &msg) {
+    cost_vars_.position = msg->q;
+    cost_vars_.velocity = msg->dq;
+    cost_vars_.wrenches = msg->K_F_ext_hat_K;
+    cost_vars_.effort = msg->tau_J;
   }
 
 } // namespace franka_tool_handover

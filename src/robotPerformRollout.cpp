@@ -102,7 +102,7 @@ int main(int n_args, char** args)
   cout << "C++    |     Reading dmp from file '" << dmp_filename << "'"  << endl;
   std::ifstream ifs(dmp_filename);
   boost::archive::xml_iarchive ia(ifs);
-  Dmp* dmp;
+  DmpWithGainSchedules* dmp;
   ia >> BOOST_SERIALIZATION_NVP(dmp);
   ifs.close();
   cout << "C++    |         " << *dmp << endl;
@@ -133,7 +133,7 @@ int main(int n_args, char** args)
   }
 
   // Integrate DMP longer than the tau with which it was trained
-  double integration_time = 1.5*dmp->tau();
+  double integration_time = 1.01*dmp->tau();
   double frequency_Hz = 1000.0;
   cout << "C++    |     Integrating dmp for " << integration_time << "s at " << (int)frequency_Hz << "Hz" << endl;
   int n_time_steps = floor(frequency_Hz*integration_time);
@@ -149,10 +149,10 @@ int main(int n_args, char** args)
   // Variable: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7360201
 
   // Trajectory set_misc converts 1xn_dims into n_time_stepsxn_nims
-  MatrixXd impedance_matrix(1, 7);
-  impedance_matrix << 1200, 1200, 1200, 600, 250, 250, 50;
+  // MatrixXd impedance_matrix(1, 7);
+  // impedance_matrix << 600, 600, 600, 600, 250, 150, 50;
 
-  trajectory.set_misc(impedance_matrix);
+  // trajectory.set_misc(impedance_matrix);
 
   bool overwrite = true;    
   trajectory.saveToFile(traj_filename, overwrite);
@@ -160,21 +160,6 @@ int main(int n_args, char** args)
   cout << "C++    |     Sending trajectory to client '" << endl;
 
   franka_tool_handover::JointAction::executeClient(trajectory);
-
-  // FILE* file;
-  // int argc;
-  // char * argv[3];
-
-  // argc = 2;
-  // argv[0] = "create_cost_vars.py";
-  // argv[1] = args[3];
-
-  // Py_SetProgramName(argv[0]);
-  // Py_Initialize();
-  // PySys_SetArgv(argc, argv);
-  // file = fopen("create_cost_vars.py","r");
-  // PyRun_SimpleFile(file, "create_cost_vars.py");
-  // Py_Finalize();
 
   delete dmp;
   

@@ -95,6 +95,7 @@ generate_messages(
   robot_module_msgs
   sensor_msgs
   actionlib_msgs
+  franka_tool_handover
 )
 
 ################################################
