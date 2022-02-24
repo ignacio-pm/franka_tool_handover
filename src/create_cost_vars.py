@@ -1,37 +1,40 @@
 #!/usr/bin/env python
 
+import sys
 import numpy as np
 import rospy
 from sensor_msgs.msg import JointState
-from franka_tool_handover.msg import CostVariables
+from franka_tool_handover.msg import JointImpedanceActionFeedback
 
 class Cost_file(object):
 
     def __init__(self,file_name):
         self.file = file_name
         self.n_joints = 7
-        self.time_frame = np.array([0.0])
+        self.time_frame = 0.0
         open(self.file, 'w').close()
-        rospy.Subscriber('/cost_vars', CostVariables, self.cost_callback, tcp_nodelay=True)
+        rospy.Subscriber('/JointAS/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
 
 
-    def cost_callback(self, cost_data):
-        # Frequency of the publisher is 1 kHz
+    def feedback_callback(self, msg):
+        # Frequency of the publisher is ~1000 Hz. Not exact to improve plotting
         self.time_frame += 0.001
-        wrenches = np.array(cost_data.wrenches)
-        effort = np.array(cost_data.effort)
+        wrenches = np.array(msg.feedback.cost_vars.wrenches)
+        effort = np.array(msg.feedback.cost_vars.effort)
+        position = np.array(msg.feedback.cost_vars.position)
+        velocity = np.array(msg.feedback.cost_vars.velocity)
 
-
-        cost_vars = np.concatenate((self.time_frame, np.concatenate((wrenches, effort), axis=None)), axis=None).reshape((1,-1))
-        print(cost_vars.shape)
+        cost_vars_numpy = np.concatenate((self.time_frame, np.concatenate((wrenches, effort), axis=None)), axis=None).reshape((1,-1))
+        # print("Printing time frame: ", self.time_frame)
 
         with open(self.file, 'a') as f:
-            np.savetxt(f, cost_vars, fmt='%1.3f')
+            np.savetxt(f, cost_vars_numpy, fmt='%1.4f')
 
 if __name__ == '__main__':
     try:
         rospy.init_node('create_cost_vars')
-        cost_class = Cost_file('test')
+        file = sys.argv[1] if len(sys.argv) > 1 else '../dmpbbo/demo_robot/results/cost_vars.txt'
+        cost_class = Cost_file(file)
 
         rospy.loginfo("Subscriber \'{0}\' started.".format(rospy.get_name()))
 

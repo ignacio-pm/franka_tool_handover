@@ -12,9 +12,8 @@ namespace franka_tool_handover {
 
   int JointAction::executeClient (DmpBbo::Trajectory trajectory) {
     ROS_INFO("Inside executeClient.");
-    int argc;
-    char **argv;
-    ros::init(argc, argv, "jointClient");
+    int argc = 0;
+    ros::init(argc, NULL, "jointClient");
     // create the action client
     // true causes the client to spin its own thread
     actionlib::SimpleActionClient<franka_tool_handover::JointImpedanceAction> ac("JointAS", true);
@@ -33,7 +32,7 @@ namespace franka_tool_handover {
     Eigen::MatrixXd mat_damp = 2 * mat_stiff.cwiseSqrt();
 
     assert(mat_pos.rows() == mat_vel.rows());
-    ROS_INFO_STREAM(n_time_steps);
+    ROS_INFO_STREAM("Number of time steps: " << n_time_steps);
     for (int i = 0; i < n_time_steps; i++) {
       std::vector<double> vec_pos(mat_pos.cols());
       std::vector<double> vec_vel(mat_vel.cols());
