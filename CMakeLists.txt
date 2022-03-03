@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -28,6 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   tf_conversions
   eigen_conversions
+  qb_hand_control
 )
 
 ## System dependencies are found with CMake's conventions
@@ -143,6 +144,7 @@ catkin_package(
     tf_conversions
     eigen_conversions
     actionlib_msgs
+    qb_hand_control
   DEPENDS Franka
 )
 
@@ -243,6 +245,38 @@ add_dependencies(${PROJECT_NAME}_rollout
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(${PROJECT_NAME}_return src/return_to_initial.cpp)
+
+set_target_properties(${PROJECT_NAME}_return PROPERTIES OUTPUT_NAME returnToInitial PREFIX "")
+
+target_include_directories(${PROJECT_NAME}_return PUBLIC
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+target_link_libraries(${PROJECT_NAME}_return PUBLIC
+  dmp 
+  franka_tool_handover
+  ${catkin_LIBRARIES}
+)
+add_dependencies(${PROJECT_NAME}_return
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+add_executable(${PROJECT_NAME}_hand src/publisher_qb_hand.cpp)
+
+set_target_properties(${PROJECT_NAME}_hand PROPERTIES OUTPUT_NAME handPub PREFIX "")
+
+target_include_directories(${PROJECT_NAME}_hand PUBLIC
+  ${catkin_INCLUDE_DIRS}
+)
+target_link_libraries(${PROJECT_NAME}_hand PUBLIC
+  ${catkin_LIBRARIES}
+)
+add_dependencies(${PROJECT_NAME}_hand
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
 #############
 ## Install ##
 #############

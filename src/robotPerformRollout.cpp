@@ -48,7 +48,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <fstream>
-#include <python3.6m/Python.h>
+#include <eigen3/Eigen/Dense>
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -61,7 +61,7 @@ using namespace franka_tool_handover;
 void help(char* binary_name)
 {
   cout << "Usage: " << binary_name 
-  << " <dmp filename.xml> <output trajectory filename.txt>  <output cost vars filename.txt> [dmp parameters.txt] [output dmp filename.xml]" << endl;
+  << " <dmp filename.xml> <output trajectory filename.txt> [dmp parameters.txt] [output dmp filename.xml]" << endl;
 }
 
 /** Main function
@@ -72,7 +72,7 @@ void help(char* binary_name)
 int main(int n_args, char** args)
 {
   
-  if (n_args<4 || n_args>6)
+  if (n_args<3 || n_args>5)
   {
     help(args[0]);
     return -1;
@@ -86,13 +86,12 @@ int main(int n_args, char** args)
 
   string dmp_filename = string(args[1]);
   string traj_filename = string(args[2]);
-  string cost_vars_filename = string(args[3]);
   string sample_filename = "";
-  if (n_args>4)
-    sample_filename = string(args[4]);
+  if (n_args>3)
+    sample_filename = string(args[3]);
   string dmp_output_filename = "";
-  if (n_args>5)
-    dmp_output_filename = string(args[5]);
+  if (n_args>4)
+    dmp_output_filename = string(args[4]);
 
   cout << "C++    | Executing "; 
   for (int ii=0; ii<n_args; ii++) cout << " " << args[ii]; 

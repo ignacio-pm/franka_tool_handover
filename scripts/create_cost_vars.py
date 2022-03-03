@@ -5,6 +5,7 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import JointState
 from franka_tool_handover.msg import JointImpedanceActionFeedback
+from franka_tool_handover.msg import JointImpedanceActionResult
 
 class Cost_file(object):
 
@@ -14,6 +15,7 @@ class Cost_file(object):
         self.time_frame = 0.0
         open(self.file, 'w').close()
         rospy.Subscriber('/JointAS/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
+        rospy.Subscriber('/JointAS/result', JointImpedanceActionResult, self.result_callback, tcp_nodelay=True)
 
 
     def feedback_callback(self, msg):
@@ -25,10 +27,22 @@ class Cost_file(object):
         velocity = np.array(msg.feedback.cost_vars.velocity)
 
         cost_vars_numpy = np.concatenate((self.time_frame, np.concatenate((wrenches, effort), axis=None)), axis=None).reshape((1,-1))
+        # BUG!!!
+        self.length = cost_vars_numpy.size
         # print("Printing time frame: ", self.time_frame)
+        
+        # np.r_[cost_vars_numpy, np.zeros(len(cost_vars_numpy[0]))]
 
         with open(self.file, 'a') as f:
             np.savetxt(f, cost_vars_numpy, fmt='%1.4f')
+
+    def result_callback(self, msg):
+        last_line = np.full((1,self.length), float(msg.result.not_succeeded))
+        
+        with open(self.file, 'a') as f:
+            np.savetxt(f, last_line, fmt='%1.1f')
+        
+        rospy.signal_shutdown("The node is shutdown because the action was terminated")
 
 if __name__ == '__main__':
     try:
