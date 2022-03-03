@@ -39,7 +39,7 @@ namespace franka_tool_handover {
 
     if(success) {
       result_.result.final_cost = cost_vars_;
-      result_.result.fully_succeeded = true;
+      result_.result.not_succeeded = false;
       as_.setSucceeded(result_.result);
     }
 

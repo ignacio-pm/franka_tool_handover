@@ -3,7 +3,7 @@ robot_module_msgs/JointCommand[] joints
 ---
 #result definition
 franka_tool_handover/CostVariables final_cost
-bool fully_succeeded
+bool not_succeeded
 ---
 #feedback
 franka_tool_handover/CostVariables cost_vars

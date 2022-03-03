@@ -69,6 +69,7 @@
   <depend>eigen_conversions</depend>
   <depend>tf_conversions</depend>
   <depend>panda_hw_gazebo</depend>
+  <depend>qb_hand_control</depend>
 
   <exec_depend>franka_control</exec_depend>
   <exec_depend>franka_description</exec_depend>

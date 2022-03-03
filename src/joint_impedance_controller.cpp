@@ -123,7 +123,6 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
 
 void JointImpedanceController::starting(const ros::Time& /*time*/) { 
   franka::RobotState robot_state = state_handle_->getRobotState();
-  auto pos = robot_state.q;
   for (size_t i = 0; i < 7; i++)
     {
       q_d[i] = robot_state.q[i];
@@ -167,7 +166,7 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
                           k_gains_[i] * (q_d[i] - robot_state.q[i]) +
                           d_gains_[i] * (dq_d[i] - robot_state.dq[i]);
   }
-  float d_value = d_gains_[4] * (dq_d[4] - robot_state.dq[4]);
+  // float d_value = d_gains_[4] * (dq_d[4] - robot_state.dq[4]);
   // ROS_INFO_COND(d_value > 0.5 or d_value < -0.5 , "Info 4: %.6f, %.6f, %.6f, %3.2f", dq_d[4], robot_state.dq[4], d_gains_[4], d_value);
 
   // Maximum torque difference with a sampling rate of 1 kHz. The maximum torque rate is
@@ -209,15 +208,23 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
   // msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
   // ROS_INFO("Time between Command Callbacks: %lf", ros::Time::now().toSec() - prev_time.toSec());
 
+
   for (size_t i = 0; i < 7; i++)
   {
     if(msg->vel[i] > 2.62) {
-      ROS_WARN("Velocity over limit.");
+      ROS_ERROR("Velocity over limit.");
+      command_sub.shutdown();
     }
-    q_d[i] = msg->pos[i];
-    dq_d[i] = msg->vel[i];
-    k_gains_[i] = msg->impedance.k[i];
-    d_gains_[i] = msg->impedance.d[i];
+    else if(std::abs(msg->pos[i] - joint_handles_[i].getPosition()) > 0.1) {
+      ROS_ERROR("Difference in position over the limit. Stopping subscriber.");
+      command_sub.shutdown();
+    }
+    else {
+      q_d[i] = msg->pos[i];
+      dq_d[i] = msg->vel[i];
+      k_gains_[i] = msg->impedance.k[i];
+      d_gains_[i] = msg->impedance.d[i];
+    }
   }
   // prev_time = ros::Time::now();
 }
