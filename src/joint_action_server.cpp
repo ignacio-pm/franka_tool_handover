@@ -48,7 +48,7 @@ namespace franka_tool_handover {
   void JointAction::statesCallback(const franka_msgs::FrankaStateConstPtr &msg) {
     cost_vars_.position = msg->q;
     cost_vars_.velocity = msg->dq;
-    cost_vars_.wrenches = msg->K_F_ext_hat_K;
+    cost_vars_.wrenches = msg->O_F_ext_hat_K;
     cost_vars_.effort = msg->tau_J;
   }
 
