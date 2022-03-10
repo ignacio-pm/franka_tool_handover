@@ -13,6 +13,8 @@
 #include <actionlib/server/simple_action_server.h>
 #include <franka_tool_handover/JointImpedanceAction.h>
 #include <franka_msgs/SetLoad.h>
+#include <franka_hw/services.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 #include <franka/robot_state.h>
 
@@ -113,11 +115,11 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
 
   command_sub = node_handle.subscribe("/joint_command", 100, &JointImpedanceController::commandCallback, 
                   this, ros::TransportHints().reliable().tcpNoDelay());
-  setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("setLoad", true);
-  // prev_time = ros::Time::now();
+  // setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("/franka_control/set_load", true);
+  prev_time = ros::Time::now();
   std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0);
   ROS_INFO("JointImpedanceController: Finished init");       
-
+  hand_pub = node_handle.advertise<trajectory_msgs::JointTrajectory>("/qbhand1/control/qbhand1_synergy_trajectory_controller/command", 1000);
   return true;
 }
 
@@ -130,14 +132,17 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
       k_gains_[i] = k_init_[i];
       d_gains_[i] = d_init_[i];
     }
-  // if(setLoadClient) {
-  //   franka_msgs::SetLoad setLoaddata;
-  //   setLoaddata.request.mass = 0.770;
-  //   setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.005, -0.003, 0.08} };
-  //   setLoaddata.request.load_inertia = boost::array<double,9> { {8.38e-3, -1.54e-4, -3.44e-5, -1.54e-4, 7.46e-4, -5.49e-6, -3.44e-5, -5.49e-6, 8.78e-3} };
-  //   setLoadClient.call(setLoaddata);
-  // }
-  ROS_INFO("JointImpedanceController: Started");   
+
+  franka_msgs::SetLoad setLoaddata;
+  setLoaddata.request.mass = weight_tool_;
+  setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.0, 0.0, 0.0} };
+  setLoaddata.request.load_inertia = boost::array<double,9> { {0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0} };
+  // ROS_INFO("Service info: %d", setLoadClient.call(setLoaddata));
+  ROS_INFO("JointImpedanceController: Tool weight set"); 
+
+  handover_detected_ = false;
+  initial_force_z_ = robot_state.O_F_ext_hat_K[2];
+  ROS_INFO("JointImpedanceController: Started"); 
 }
 
 void JointImpedanceController::update(const ros::Time& /*time*/,
@@ -145,13 +150,16 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
   franka::RobotState robot_state = state_handle_->getRobotState();
   std::array<double, 7> coriolis = model_handle_->getCoriolis();
 
-  // force_z = robot_state.K_F_ext_hat_K[2];
+  double force_z = robot_state.O_F_ext_hat_K[2];
 
-  // if(setLoadClient && force_z > 9.81 * weight_tool_) {
+  if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
+    ROS_INFO("JointImpedanceController: Handover detected"); 
+    handover_detected_ = true;
+    
   //   franka_msgs::SetLoad setLoaddata;
   //   setLoaddata.request.mass = 0.770 + weight_tool_;
   //   setLoadClient.call(setLoaddata);
-  // }
+  }
   std::array<double, 7> gravity = model_handle_->getGravity();
 
   std::array<double, 7> tau_d_calculated;
@@ -206,7 +214,13 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
   // ROS_INFO("damping: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
   // msg->impedance.d[0], msg->impedance.d[1], msg->impedance.d[2], msg->impedance.d[3], 
   // msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
-  // ROS_INFO("Time between Command Callbacks: %lf", ros::Time::now().toSec() - prev_time.toSec());
+  if (ros::Time::now().toSec() - prev_time.toSec() > 2.0) {
+    franka::RobotState robot_state = state_handle_->getRobotState();
+    initial_force_z_ = robot_state.O_F_ext_hat_K[2];
+    handover_detected_ = false;
+    ROS_INFO("%f", initial_force_z_);
+    ROS_INFO("JointImpedanceController: Detected new rollout"); 
+  } 
 
 
   for (size_t i = 0; i < 7; i++)
@@ -226,7 +240,7 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
       d_gains_[i] = msg->impedance.d[i];
     }
   }
-  // prev_time = ros::Time::now();
+  prev_time = ros::Time::now();
 }
 
 }  // namespace franka_tool_handover

@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   controller_interface
   dynamic_reconfigure
   franka_hw
+  franka_msgs
   trajectory_msgs
   robot_module_msgs
   std_msgs

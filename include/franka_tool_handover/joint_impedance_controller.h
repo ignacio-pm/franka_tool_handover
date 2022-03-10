@@ -46,9 +46,11 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   double vel_max_{0.05};
   double vel_current_{0.0};
   double coriolis_factor_{1.0};
-  double weight_tool_{0.500};
+  double weight_tool_{0.444};
+  double initial_force_z_;
+  bool handover_detected_;
   static constexpr double kDeltaTauMax{1.0};
-  // ros::Time prev_time;
+  ros::Time prev_time;
 
   std::array<double, 7> k_gains_;
   std::array<double, 7> d_gains_;
@@ -63,6 +65,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
 
   ros::Subscriber command_sub;
   ros::ServiceClient setLoadClient;
+  ros::Publisher hand_pub;
 };
 
 }  // namespace franka_tool_handover

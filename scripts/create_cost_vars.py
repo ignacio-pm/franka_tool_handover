@@ -27,7 +27,6 @@ class Cost_file(object):
         velocity = np.array(msg.feedback.cost_vars.velocity)
 
         cost_vars_numpy = np.concatenate((self.time_frame, np.concatenate((wrenches, effort), axis=None)), axis=None).reshape((1,-1))
-        # BUG!!!
         self.length = cost_vars_numpy.size
         # print("Printing time frame: ", self.time_frame)
         
