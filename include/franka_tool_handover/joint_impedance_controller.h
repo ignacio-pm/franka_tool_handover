@@ -20,6 +20,7 @@
 
 #include <robot_module_msgs/JointCommand.h>
 #include <franka_tool_handover/CostVariables.h>
+#include <franka_tool_handover/client_qb_hand.h>
 
 namespace franka_tool_handover {
 
@@ -66,6 +67,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   ros::Subscriber command_sub;
   ros::ServiceClient setLoadClient;
   ros::Publisher hand_pub;
+  franka_tool_handover::QbHand hand_object{"qbhand1"};
 };
 
 }  // namespace franka_tool_handover
