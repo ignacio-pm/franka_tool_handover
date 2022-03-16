@@ -15,6 +15,7 @@
 #include <franka_msgs/SetLoad.h>
 #include <franka_hw/services.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <franka_tool_handover/client_qb_hand.h>
 
 #include <franka/robot_state.h>
 
@@ -119,7 +120,6 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
   prev_time = ros::Time::now();
   std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0);
   ROS_INFO("JointImpedanceController: Finished init");       
-  hand_pub = node_handle.advertise<trajectory_msgs::JointTrajectory>("/qbhand1/control/qbhand1_synergy_trajectory_controller/command", 1000);
   return true;
 }
 
@@ -140,7 +140,8 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
   // ROS_INFO("Service info: %d", setLoadClient.call(setLoaddata));
   ROS_INFO("JointImpedanceController: Tool weight set"); 
 
-  handover_detected_ = false;
+  // A handover can not be detected until the movement starts
+  handover_detected_ = true;
   initial_force_z_ = robot_state.O_F_ext_hat_K[2];
   ROS_INFO("JointImpedanceController: Started"); 
 }
@@ -155,7 +156,8 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
   if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
     ROS_INFO("JointImpedanceController: Handover detected"); 
     handover_detected_ = true;
-    
+    std::string action = "open";
+    hand_object.client(action, 0.1); 
   //   franka_msgs::SetLoad setLoaddata;
   //   setLoaddata.request.mass = 0.770 + weight_tool_;
   //   setLoadClient.call(setLoaddata);
@@ -218,8 +220,8 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
     franka::RobotState robot_state = state_handle_->getRobotState();
     initial_force_z_ = robot_state.O_F_ext_hat_K[2];
     handover_detected_ = false;
-    ROS_INFO("%f", initial_force_z_);
     ROS_INFO("JointImpedanceController: Detected new rollout"); 
+    ROS_INFO("Initial force: %f", initial_force_z_);
   } 
 
 

@@ -165,6 +165,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dmpbbo)
 set(LIB_SOURCES
   src/joint_impedance_controller
   src/joint_client
+  src/client_qb_hand
   )
 
 add_library(franka_tool_handover
@@ -264,7 +265,7 @@ add_dependencies(${PROJECT_NAME}_return
   ${catkin_EXPORTED_TARGETS}
 )
 
-add_executable(${PROJECT_NAME}_hand src/publisher_qb_hand.cpp)
+add_executable(${PROJECT_NAME}_hand src/client_qb_hand.cpp)
 
 set_target_properties(${PROJECT_NAME}_hand PROPERTIES OUTPUT_NAME handPub PREFIX "")
 
