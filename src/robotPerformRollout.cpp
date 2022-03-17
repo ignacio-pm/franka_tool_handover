@@ -132,7 +132,7 @@ int main(int n_args, char** args)
   }
 
   // Integrate DMP longer than the tau with which it was trained
-  double integration_time = 1.01*dmp->tau();
+  double integration_time = dmp->tau();
   double frequency_Hz = 1000.0;
   cout << "C++    |     Integrating dmp for " << integration_time << "s at " << (int)frequency_Hz << "Hz" << endl;
   int n_time_steps = floor(frequency_Hz*integration_time);
@@ -149,7 +149,7 @@ int main(int n_args, char** args)
 
   // Trajectory set_misc converts 1xn_dims into n_time_stepsxn_nims
   // MatrixXd impedance_matrix(1, 7);
-  // impedance_matrix << 600, 600, 600, 600, 250, 150, 50;
+  // impedance_matrix << 600, 600, 600, 250, 150, 150, 50;
 
   // trajectory.set_misc(impedance_matrix);
 

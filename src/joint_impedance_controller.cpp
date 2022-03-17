@@ -116,7 +116,12 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
 
   command_sub = node_handle.subscribe("/joint_command", 100, &JointImpedanceController::commandCallback, 
                   this, ros::TransportHints().reliable().tcpNoDelay());
-  // setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("/franka_control/set_load", true);
+  setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("/franka_control/set_load", true);
+  // franka_msgs::SetLoad setLoaddata;
+  // setLoaddata.request.mass = weight_tool_;
+  // setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.0, 0.0, 0.0} };
+  // setLoaddata.request.load_inertia = boost::array<double,9> { {0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0} };
+  // setLoadClient.call(setLoaddata);
   prev_time = ros::Time::now();
   std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0);
   ROS_INFO("JointImpedanceController: Finished init");       
@@ -133,11 +138,6 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
       d_gains_[i] = d_init_[i];
     }
 
-  franka_msgs::SetLoad setLoaddata;
-  setLoaddata.request.mass = weight_tool_;
-  setLoaddata.request.F_x_center_load = boost::array<double,3> { {0.0, 0.0, 0.0} };
-  setLoaddata.request.load_inertia = boost::array<double,9> { {0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0} };
-  // ROS_INFO("Service info: %d", setLoadClient.call(setLoaddata));
   ROS_INFO("JointImpedanceController: Tool weight set"); 
 
   // A handover can not be detected until the movement starts
@@ -153,14 +153,15 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
 
   double force_z = robot_state.O_F_ext_hat_K[2];
 
-  if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
+  // if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
+  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.1 * weight_tool_)) {
     ROS_INFO("JointImpedanceController: Handover detected"); 
     handover_detected_ = true;
     std::string action = "open";
     hand_object.client(action, 0.1); 
-  //   franka_msgs::SetLoad setLoaddata;
-  //   setLoaddata.request.mass = 0.770 + weight_tool_;
-  //   setLoadClient.call(setLoaddata);
+    // franka_msgs::SetLoad setLoaddata;
+    // setLoaddata.request.mass = 0.01;
+    // setLoadClient.call(setLoaddata);
   }
   std::array<double, 7> gravity = model_handle_->getGravity();
 
@@ -216,7 +217,7 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
   // ROS_INFO("damping: %6.2f, %6.2f, %6.2f, %6.2f %6.2f, %6.2f, %6.2f", 
   // msg->impedance.d[0], msg->impedance.d[1], msg->impedance.d[2], msg->impedance.d[3], 
   // msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
-  if (ros::Time::now().toSec() - prev_time.toSec() > 2.0) {
+  if (ros::Time::now().toSec() - prev_time.toSec() > 5.0) {
     franka::RobotState robot_state = state_handle_->getRobotState();
     initial_force_z_ = robot_state.O_F_ext_hat_K[2];
     handover_detected_ = false;
