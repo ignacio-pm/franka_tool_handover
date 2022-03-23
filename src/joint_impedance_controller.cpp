@@ -124,6 +124,7 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
   // setLoadClient.call(setLoaddata);
   prev_time = ros::Time::now();
   std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0);
+  handover_publisher_.init(node_handle, "handover_bool", 1);
   ROS_INFO("JointImpedanceController: Finished init");       
   return true;
 }
@@ -140,7 +141,7 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
 
   ROS_INFO("JointImpedanceController: Tool weight set"); 
 
-  // A handover can not be detected until the movement starts
+  // A handover can not be detected until the subscriber commandCallback receives a trajectory
   handover_detected_ = true;
   initial_force_z_ = robot_state.O_F_ext_hat_K[2];
   ROS_INFO("JointImpedanceController: Started"); 
@@ -154,11 +155,15 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
   double force_z = robot_state.O_F_ext_hat_K[2];
 
   // if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
-  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.1 * weight_tool_)) {
+  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.5 * weight_tool_) && force_z < 0.0) {
     ROS_INFO("JointImpedanceController: Handover detected"); 
     handover_detected_ = true;
     std::string action = "open";
     hand_object.client(action, 0.1); 
+    if (rate_trigger_() && handover_publisher_.trylock()) {
+      handover_publisher_.msg_.data = true;
+      handover_publisher_.unlockAndPublish();
+    }
     // franka_msgs::SetLoad setLoaddata;
     // setLoaddata.request.mass = 0.01;
     // setLoadClient.call(setLoaddata);

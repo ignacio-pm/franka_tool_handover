@@ -6,6 +6,7 @@ import rospy
 from sensor_msgs.msg import JointState
 from franka_tool_handover.msg import JointImpedanceActionFeedback
 from franka_tool_handover.msg import JointImpedanceActionResult
+from std_msgs.msg import Bool
 
 class Cost_file(object):
 
@@ -13,9 +14,11 @@ class Cost_file(object):
         self.file = file_name
         self.n_joints = 7
         self.time_frame = 0.0
+        self.handover_time = 10.0
         open(self.file, 'w').close()
         rospy.Subscriber('/JointAS/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
         rospy.Subscriber('/JointAS/result', JointImpedanceActionResult, self.result_callback, tcp_nodelay=True)
+        rospy.Subscriber('/joint_impedance_controller/handover_bool', Bool, self.handover_callback, tcp_nodelay=True)
 
 
     def feedback_callback(self, msg):
@@ -26,7 +29,8 @@ class Cost_file(object):
         position = np.array(msg.feedback.cost_vars.position)
         velocity = np.array(msg.feedback.cost_vars.velocity)
 
-        cost_vars_numpy = np.concatenate((self.time_frame, np.concatenate((wrenches, effort), axis=None)), axis=None).reshape((1,-1))
+        cost_vars_numpy = np.concatenate((self.time_frame, np.concatenate((wrenches, np.concatenate((effort, 
+        np.concatenate((position,velocity),axis = None)), axis = None)), axis=None)), axis=None).reshape((1,-1))
         self.length = cost_vars_numpy.size
         # print("Printing time frame: ", self.time_frame)
         
@@ -36,12 +40,19 @@ class Cost_file(object):
             np.savetxt(f, cost_vars_numpy, fmt='%1.4f')
 
     def result_callback(self, msg):
-        last_line = np.full((1,self.length), float(msg.result.not_succeeded))
-        
-        with open(self.file, 'a') as f:
-            np.savetxt(f, last_line, fmt='%1.1f')
-        
+        if msg.result.action_completed:
+            # If handover_time = 100 the evaluate plotout will detect that the time of the handover is > max_time
+            # Therefore, it will be set as not_completed
+            last_line = np.full((1,self.length), self.handover_time)
+            with open(self.file, 'a') as f:
+                np.savetxt(f, last_line, fmt='%1.3f')
+        else:
+            rospy.loginfo("Action not completed")
         rospy.signal_shutdown("The node is shutdown because the action was terminated")
+
+    def handover_callback(self, msg):
+        if msg:
+            self.handover_time = self.time_frame
 
 if __name__ == '__main__':
     try:

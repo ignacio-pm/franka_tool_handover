@@ -17,6 +17,7 @@
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/trigger_rate.h>
 #include <franka_msgs/SetLoad.h>
+#include <std_msgs/Bool.h>
 
 #include <robot_module_msgs/JointCommand.h>
 #include <franka_tool_handover/CostVariables.h>
@@ -68,6 +69,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   ros::ServiceClient setLoadClient;
   ros::Publisher hand_pub;
   franka_tool_handover::QbHand hand_object{"qbhand1"};
+  realtime_tools::RealtimePublisher<std_msgs::Bool> handover_publisher_;
 };
 
 }  // namespace franka_tool_handover
