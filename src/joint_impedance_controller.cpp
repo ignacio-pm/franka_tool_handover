@@ -237,7 +237,7 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
       ROS_ERROR("Velocity over limit.");
       command_sub.shutdown();
     }
-    else if(std::abs(msg->pos[i] - joint_handles_[i].getPosition()) > 0.1) {
+    else if(std::abs(msg->pos[i] - joint_handles_[i].getPosition()) > 0.2) {
       ROS_ERROR("Difference in position over the limit. Stopping subscriber.");
       command_sub.shutdown();
     }
