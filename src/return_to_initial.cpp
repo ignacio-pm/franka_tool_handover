@@ -49,10 +49,11 @@ int main(int n_args, char** args)
   }
 
   Trajectory return_traj;
-  return_traj = Trajectory::generateMinJerkTrajectory(trajectory.ts().head(6000), trajectory.final_y(), trajectory.initial_y());
+  return_traj = Trajectory::generateMinJerkTrajectory(trajectory.ts().head(4000), trajectory.final_y(), trajectory.initial_y());
 
   MatrixXd impedance_matrix(1, 7);
-  impedance_matrix << 600, 600, 600, 250, 150, 150, 50;
+  // impedance_matrix << 600, 600, 600, 250, 150, 150, 50;
+  impedance_matrix << 50, 50, 50, 50, 50, 50, 50;
 
   return_traj.set_misc(impedance_matrix);
 

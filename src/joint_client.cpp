@@ -27,12 +27,20 @@ namespace franka_tool_handover {
     int n_time_steps = trajectory.length();
     Eigen::MatrixXd mat_pos = trajectory.ys();
     Eigen::MatrixXd mat_vel = trajectory.yds();
-    Eigen::MatrixXd mat_stiff = trajectory.misc();
+    // Stiffness based on whole values
+    // Eigen::MatrixXd mat_stiff = trajectory.misc();
+    // mat_stiff = (mat_stiff.array() < 1).select(1, mat_stiff);
     // Constant stiffness
     // Eigen::MatrixXd mat_stiff_row (1, 7);
     // mat_stiff_row << 600, 600, 600, 250, 150, 150, 50;
     // Eigen::MatrixXd mat_stiff = mat_stiff_row.replicate(n_time_steps,1);
     // The damping is set for the system to be critically damped.
+    // Stiffness based on 50-values
+    Eigen::MatrixXd mat_stiff_ones = trajectory.misc();
+    mat_stiff_ones = (mat_stiff_ones.array() < 5.000000).select(5.000000, mat_stiff_ones);
+    Eigen::VectorXd mat_stiff_row (7);
+    mat_stiff_row << 6.0, 6.0, 6.0, 2.5, 1.5, 1.5, 0.5;
+    Eigen::MatrixXd mat_stiff = mat_stiff_ones.array().rowwise() * mat_stiff_row.transpose().array();
     Eigen::MatrixXd mat_damp = 2 * mat_stiff.cwiseSqrt();
 
     assert(mat_pos.rows() == mat_stiff.rows());
