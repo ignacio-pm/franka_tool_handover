@@ -17,21 +17,25 @@ def save_trajectory_plot(folder, prefix):
 
     file = folder + '/trajectory.txt'
     fig,(ax1,ax2) = plt.subplots(2)
-    title = prefix + ' Trajectory'
+    title = prefix + ' trajectory'
     fig.suptitle(title)
 
     ts = np.loadtxt(file, usecols = 0)
     positions = np.loadtxt(file, usecols = np.arange(1,8))
     velocities = np.loadtxt(file, usecols = np.arange(8,15))
-    accelerations = np.loadtxt(file, usecols = np.arange(15,22))
-    impedance = np.loadtxt(file, usecols = np.arange(22,29))
+    # accelerations = np.loadtxt(file, usecols = np.arange(15,22))
+    # impedance = np.loadtxt(file, usecols = np.arange(22,29))
+    # imp_vector = np.array([6.0, 6.0, 6.0, 2.5, 1.5, 1.5, 0.5])
+    # impedance = impedance * imp_vector
 
     fig.subplots_adjust(hspace=.4)
     ax1.plot(ts,positions)
     ax1.set_title('Positions')
-    # ax1.legend()
+    ax1.set_ylabel('rad')
     ax2.plot(ts,velocities)
     ax2.set_title('Velocities')
+    ax2.set_ylabel('rad/s')
+    ax2.set_xlabel('s')
     fig.legend(['Joint 1', 'Joint 2', 'Joint 3', 'Joint 4', 'Joint 5', 'Joint 6', 'Joint 7'], loc=7)
     plt.subplots_adjust(right=0.8)
     file_name = folder + '/' + prefix.lower() + '_trajectory.png'
@@ -51,7 +55,7 @@ def save_trajectory_plot(folder, prefix):
 def save_cost_vars_plots(folder):
     file = folder + '/cost_vars.txt'
     fig,(ax1,ax2) = plt.subplots(2)
-    fig.suptitle('Executed Trajectory')
+    fig.suptitle('Executed trajectory')
 
     ts = np.loadtxt(file, usecols = 0)[0:-1]
     positions = np.loadtxt(file, usecols = np.arange(14,21))[0:-1]
@@ -60,9 +64,11 @@ def save_cost_vars_plots(folder):
     fig.subplots_adjust(hspace=.4)
     ax1.plot(ts,positions)
     ax1.set_title('Positions')
-    # ax1.legend()
+    ax1.set_ylabel('rad')
     ax2.plot(ts,velocities)
     ax2.set_title('Velocities')
+    ax2.set_ylabel('rad/s')
+    ax2.set_xlabel('s')
     fig.legend(['Joint 1', 'Joint 2', 'Joint 3', 'Joint 4', 'Joint 5', 'Joint 6', 'Joint 7'], loc=7)
     plt.subplots_adjust(right=0.8)
     file_name = folder + '/positions.png'
@@ -114,9 +120,9 @@ if __name__ == '__main__':
     type = sys.argv[1]
     folder = sys.argv[2]
     if (type == 'optimized_trajectory'):
-        save_trajectory_plot(folder, 'Optimized')
-    if (type == 'train_trajectory'):
-        save_trajectory_plot(folder, 'Train')    
+        save_trajectory_plot(folder, 'Trained')
+    elif (type == 'train_trajectory'):
+        save_trajectory_plot(folder, 'Demonstrated')    
     elif (type == 'cost_vars'):
         save_cost_vars_plots(folder)
         save_trajectory_plot(folder, 'Rollout')  
