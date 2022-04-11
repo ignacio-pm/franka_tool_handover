@@ -163,11 +163,8 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
     if (rate_trigger_() && handover_publisher_.trylock()) {
       handover_publisher_.msg_.data = true;
       handover_publisher_.unlockAndPublish();
-    }
     // franka_msgs::SetLoad setLoaddata;
     // setLoaddata.request.mass = 0.01;
-    // setLoadClient.call(setLoaddata);
-  }
   std::array<double, 7> gravity = model_handle_->getGravity();
 
   std::array<double, 7> tau_d_calculated;
