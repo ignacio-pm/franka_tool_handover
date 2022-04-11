@@ -32,7 +32,7 @@ namespace franka_tool_handover {
     // mat_stiff = (mat_stiff.array() < 1).select(1, mat_stiff);
     // Constant stiffness
     // Eigen::MatrixXd mat_stiff_row (1, 7);
-    // mat_stiff_row << 600, 600, 600, 250, 150, 150, 50;
+    // mat_stiff_row << 300, 300, 300, 125, 75, 75, 25;
     // Eigen::MatrixXd mat_stiff = mat_stiff_row.replicate(n_time_steps,1);
     // The damping is set for the system to be critically damped.
     // Stiffness based on 50-values
