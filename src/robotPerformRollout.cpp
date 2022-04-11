@@ -101,7 +101,7 @@ int main(int n_args, char** args)
   cout << "C++    |     Reading dmp from file '" << dmp_filename << "'"  << endl;
   std::ifstream ifs(dmp_filename);
   boost::archive::xml_iarchive ia(ifs);
-  Dmp* dmp;
+  DmpWithGainSchedules* dmp;
   ia >> BOOST_SERIALIZATION_NVP(dmp);
   ifs.close();
   cout << "C++    |         " << *dmp << endl;
