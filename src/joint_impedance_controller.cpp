@@ -155,10 +155,10 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
   double force_z = robot_state.O_F_ext_hat_K[2];
 
   // if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
-  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.5 * weight_tool_) && force_z < 0.0) {
+  if(!handover_detected_ && force_z > (initial_force_z_ + 9.81 * 0.6 * weight_tool_) && force_z > 0.0) {
     ROS_INFO("JointImpedanceController: Handover detected"); 
     handover_detected_ = true;
-    std::string action = "open";
+    std::string action = "close";
     hand_object.client(action, 0.1); 
     if (rate_trigger_() && handover_publisher_.trylock()) {
       handover_publisher_.msg_.data = true;
