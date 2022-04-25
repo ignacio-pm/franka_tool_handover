@@ -158,7 +158,13 @@ int main(int n_args, char** args)
 
   cout << "C++    |     Sending trajectory to client '" << endl;
 
-  franka_tool_handover::JointAction::executeClient(trajectory);
+  // Check if trajectory comes from a receiver folder
+  string receiver_str = "receiver";
+  if(traj_filename.find(receiver_str) != string::npos)
+    franka_tool_handover::JointAction::executeClient(trajectory, "JointAS_rec");
+  else
+    franka_tool_handover::JointAction::executeClient(trajectory, "JointAS");
+  
 
   delete dmp;
   

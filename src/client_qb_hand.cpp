@@ -7,9 +7,10 @@
 #include "control_msgs/FollowJointTrajectoryAction.h"
 #include <actionlib/client/simple_action_client.h>
 
+using namespace std;
 namespace franka_tool_handover {
 
-  QbHand::QbHand(std::string name) : 
+  QbHand::QbHand(string name) : 
     ac("/" + name + "/control/" + name + "_synergy_trajectory_controller/follow_joint_trajectory", true)
   {
     hand_name = name;
@@ -22,14 +23,14 @@ namespace franka_tool_handover {
 
   QbHand::~QbHand(void){}
 
-  void QbHand::client(const std::string &action, const double &time_action) {
+  void QbHand::client(const string &action, const double &time_action) {
     trajectory_msgs::JointTrajectoryPoint point;
     trajectory_msgs::JointTrajectory trajectory;
     control_msgs::FollowJointTrajectoryGoal action_goal;
     // double opening_time = 2.5;
     // double closing_time = 5.0;
-    // std::array<double,5> positions {0.0, 0.0, 1.0, 1.0, 1.0};
-    // std::array<double,5> time {0.0, closing_time-1.0, closing_time, closing_time + 1.0, closing_time + 2.0};
+    // array<double,5> positions {0.0, 0.0, 1.0, 1.0, 1.0};
+    // array<double,5> time {0.0, closing_time-1.0, closing_time, closing_time + 1.0, closing_time + 2.0};
     // if (action == "open") {
     //   positions = {1.0, 1.0, 0.0, 0.0, 0.0};
     //   time = {0.0, opening_time-1.0, opening_time, opening_time + 1.0, opening_time + 2.0};
@@ -74,22 +75,23 @@ namespace franka_tool_handover {
 
 void help()
 {
-  std::cout << "Usage: file + a string: open for opening the hand and close for closing" << std::endl;
+  cout << "Usage: file + a string: open for opening the hand and close for closing" << endl;
 }
 
 
 int main(int argc, char** argv) {
-  if (argc != 2 || (std::string(argv[1]) != std::string("close") && std::string(argv[1]) != std::string("open")))
+  if (argc != 3 || (string(argv[2]) != string("close") && string(argv[2]) != string("open")) || string(argv[1]).find("qbhand") == string::npos)
   {
     help();
     return -1;
   }
-  std::string action = std::string(argv[1]);
+  string name_hand = string(argv[1]);
+  string action = string(argv[2]);
   ros::init(argc, argv, "qbhand_client");
 
   double time_action = 1.0;
 
-  franka_tool_handover::QbHand hand_object("qbhand1");
+  franka_tool_handover::QbHand hand_object(name_hand);
   hand_object.client(action, time_action); 
   return 0;
 }

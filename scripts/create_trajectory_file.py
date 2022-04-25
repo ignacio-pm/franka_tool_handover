@@ -15,7 +15,7 @@ class Trajectory_file(object):
         self.stiffness = np.array([50, 50, 50, 50, 50, 50, 50])
         # '../dmpbbo/demo_robot/trajectory.txt'
         # 'trajectory.txt'
-        open('../dmpbbo/demo_robot/trajectory.txt', 'w').close()
+        open('../dmpbbo/demo_robot/results/experiment_giver/trajectory.txt', 'w').close()
         # rospy.Subscriber('/franka_state_controller/joint_states', JointState, self.trajectory_callback, tcp_nodelay=True)
         rospy.Subscriber('/franka_state_controller/franka_states', FrankaState, self.state_callback, tcp_nodelay=True)
 

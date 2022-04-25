@@ -57,7 +57,11 @@ int main(int n_args, char** args)
 
   return_traj.set_misc(impedance_matrix);
 
-  franka_tool_handover::JointAction::executeClient(return_traj);
-
+    // Check if trajectory comes from a receiver folder
+  string receiver_str = "receiver";
+  if(input_trajectory_file.find(receiver_str) != string::npos)
+    franka_tool_handover::JointAction::executeClient(return_traj, "JointAS_rec");
+  else
+    franka_tool_handover::JointAction::executeClient(return_traj, "JointAS");
   return 0;
 }

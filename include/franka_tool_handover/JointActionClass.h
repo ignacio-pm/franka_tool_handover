@@ -32,7 +32,7 @@ class JointAction {
     void executeCB(const franka_tool_handover::JointImpedanceGoalConstPtr &goal);
 
     void statesCallback(const franka_msgs::FrankaStateConstPtr &msg);
-    static int executeClient(DmpBbo::Trajectory trajectory);
+    static int executeClient(DmpBbo::Trajectory trajectory, std::string action_topic);
 };
 
 } // namespace franka_tool_handover

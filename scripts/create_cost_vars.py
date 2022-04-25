@@ -16,9 +16,14 @@ class Cost_file(object):
         self.time_frame = 0.0
         self.handover_time = 10.0
         open(self.file, 'w').close()
-        rospy.Subscriber('/JointAS/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
-        rospy.Subscriber('/JointAS/result', JointImpedanceActionResult, self.result_callback, tcp_nodelay=True)
-        rospy.Subscriber('/joint_impedance_controller/handover_bool', Bool, self.handover_callback, tcp_nodelay=True)
+        if "receiver" in file_name:
+            rospy.Subscriber('/JointAS_rec/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
+            rospy.Subscriber('/JointAS_rec/result', JointImpedanceActionResult, self.result_callback, tcp_nodelay=True)
+            rospy.Subscriber('/joint_impedance_controller_rec/handover_bool', Bool, self.handover_callback, tcp_nodelay=True)
+        else: 
+            rospy.Subscriber('/JointAS/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
+            rospy.Subscriber('/JointAS/result', JointImpedanceActionResult, self.result_callback, tcp_nodelay=True)
+            rospy.Subscriber('/joint_impedance_controller/handover_bool', Bool, self.handover_callback, tcp_nodelay=True)
 
 
     def feedback_callback(self, msg):
