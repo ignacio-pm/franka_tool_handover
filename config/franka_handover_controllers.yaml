@@ -28,3 +28,65 @@ joint_impedance_controller:
     vel_max: 0.15
     publish_rate: 10.0
     coriolis_factor: 1.0
+
+panda_1_joint_controller:
+    type: franka_tool_handover/JointImpedanceController
+    arm_id: panda_1
+    joint_names:
+        - panda_1_joint1
+        - panda_1_joint2
+        - panda_1_joint3
+        - panda_1_joint4
+        - panda_1_joint5
+        - panda_1_joint6
+        - panda_1_joint7
+    k_gains:
+        - 600.0
+        - 600.0
+        - 600.0
+        - 600.0
+        - 250.0
+        - 150.0
+        - 50.0
+    d_gains:
+        - 50.0
+        - 50.0
+        - 50.0
+        - 20.0
+        - 20.0
+        - 20.0
+        - 10.0
+    vel_max: 0.15
+    publish_rate: 10.0
+    coriolis_factor: 1.0
+
+panda_2_joint_controller:
+    type: franka_tool_handover/JointImpedanceController
+    arm_id: panda_2
+    joint_names:
+        - panda_2_joint1
+        - panda_2_joint2
+        - panda_2_joint3
+        - panda_2_joint4
+        - panda_2_joint5
+        - panda_2_joint6
+        - panda_2_joint7
+    k_gains:
+        - 600.0
+        - 600.0
+        - 600.0
+        - 600.0
+        - 250.0
+        - 150.0
+        - 50.0
+    d_gains:
+        - 50.0
+        - 50.0
+        - 50.0
+        - 20.0
+        - 20.0
+        - 20.0
+        - 10.0
+    vel_max: 0.15
+    publish_rate: 10.0
+    coriolis_factor: 1.0

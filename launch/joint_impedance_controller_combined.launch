@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="robot_ip" />
+  <arg name="load_gripper" default="false" />
+  <include file="$(find franka_control)/launch/franka_combined_control.launch" >
+    <!-- The ips must be set as dictionary like "{<arm_id_1>/robot_ip: <my_ip_1>, <arm_id_2>/robot_ip: <my_ip_2>}" 
+    Example: robot_ips:="{ panda_1/robot_ip: 192.168.3.101, panda_2/robot_ip: 192.168.3.102}" -->
+    <arg name="robot_ips" value="$(arg robot_ips)" />
+
+      <arg name="controllers_file" value="$(find franka_tool_handover)/config/franka_handover_controllers.yaml" />
+      <arg name="controllers_to_start" value="panda_1_joint_controller panda_2_joint_controller"/>
+      <arg name="joint_states_source_list" value="[panda_1_joint_controller/joint_states, panda_2_joint_controller/joint_states]"/>
+      
+  </include>
+
+  <include file="$(find qb_hand_control)/launch/multi-control.launch" >
+    <arg name="standalone" value="true" />
+    <arg name="activate_on_initialization" value="true" />
+    <arg name="robot_hardware" value="[qbhand1, qbhand2]" />
+    <arg name="robot_name" value="qbhand" />
+  </include>
+
+  <node pkg="franka_tool_handover" name="JointAS_rec" type="node"/>
+
+</launch>
