@@ -85,11 +85,11 @@ int main(int argc, char** argv) {
     return -1;
   }
   std::string action = std::string(argv[1]);
-  ros::init(argc, argv, "qbhand_client");
+  ros::init(argc, argv, "qbhand2_client");
 
   double time_action = 1.0;
 
-  franka_tool_handover::QbHand hand_object("qbhand1");
+  franka_tool_handover::QbHand hand_object("qbhand2");
   hand_object.client(action, time_action); 
   return 0;
 }

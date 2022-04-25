@@ -68,7 +68,7 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   ros::Subscriber command_sub;
   ros::ServiceClient setLoadClient;
   ros::Publisher hand_pub;
-  franka_tool_handover::QbHand hand_object{"qbhand1"};
+  franka_tool_handover::QbHand hand_object{"qbhand2"};
   realtime_tools::RealtimePublisher<std_msgs::Bool> handover_publisher_;
 };
 

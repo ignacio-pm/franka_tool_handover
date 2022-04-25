@@ -55,9 +55,9 @@ namespace franka_tool_handover {
 } // namespace franka_tool_handover
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "JointAS");
+  ros::init(argc, argv, "JointAS_rec");
 
-  franka_tool_handover::JointAction joint_object("JointAS");
+  franka_tool_handover::JointAction joint_object("JointAS_rec");
   ros::spin();
 
   return 0;

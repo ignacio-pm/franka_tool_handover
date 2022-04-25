@@ -16,7 +16,7 @@ namespace franka_tool_handover {
     ros::init(argc, NULL, "jointClient");
     // create the action client
     // true causes the client to spin its own thread
-    actionlib::SimpleActionClient<franka_tool_handover::JointImpedanceAction> ac("JointAS", true);
+    actionlib::SimpleActionClient<franka_tool_handover::JointImpedanceAction> ac("JointAS_rec", true);
     ROS_INFO("Waiting for joint action server to start.");
     // wait for the action server to start
     ac.waitForServer(); //will wait for infinite time

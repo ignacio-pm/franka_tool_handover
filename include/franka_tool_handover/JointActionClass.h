@@ -21,9 +21,9 @@ class JointAction {
     franka_tool_handover::CostVariables cost_vars_;
 
     
-    ros::Subscriber sub = node_handle_.subscribe("/franka_state_controller/franka_states", 100, 
+    ros::Subscriber sub = node_handle_.subscribe("/franka_state_controller_rec/franka_states", 100, 
         &JointAction::statesCallback, this, ros::TransportHints().reliable().tcpNoDelay());
-    ros::Publisher command_pub = node_handle_.advertise<robot_module_msgs::JointCommand>("/joint_command", 100);
+    ros::Publisher command_pub = node_handle_.advertise<robot_module_msgs::JointCommand>("/joint_command_rec", 100);
   
   public:
     JointAction(std::string name);

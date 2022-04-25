@@ -114,7 +114,7 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
     }
   }
 
-  command_sub = node_handle.subscribe("/joint_command", 100, &JointImpedanceController::commandCallback, 
+  command_sub = node_handle.subscribe("/joint_command_rec", 100, &JointImpedanceController::commandCallback, 
                   this, ros::TransportHints().reliable().tcpNoDelay());
   setLoadClient = node_handle.serviceClient<franka_msgs::SetLoad>("/franka_control/set_load", true);
   // franka_msgs::SetLoad setLoaddata;
@@ -124,7 +124,7 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
   // setLoadClient.call(setLoaddata);
   prev_time = ros::Time::now();
   std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0);
-  handover_publisher_.init(node_handle, "handover_bool", 1);
+  handover_publisher_.init(node_handle, "/joint_impedance_controller_rec/handover_bool", 1);
   ROS_INFO("JointImpedanceController: Finished init");       
   return true;
 }
