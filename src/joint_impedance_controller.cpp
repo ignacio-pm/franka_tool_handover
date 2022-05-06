@@ -228,7 +228,7 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
     first_movement_detected_ = true;
     ROS_INFO("JointImpedanceController: Detected new movement"); 
   } 
-  if (first_movement_detected_ == true && ros::Time::now().toSec() - initial_time.toSec() > 1.0) {
+  if (first_movement_detected_ == true && ros::Time::now().toSec() - initial_time.toSec() > 2.0) {
     franka::RobotState robot_state = state_handle_->getRobotState();
     initial_force_z_ = robot_state.O_F_ext_hat_K[2];
     handover_detected_ = false;

@@ -7,26 +7,20 @@ import matplotlib.pyplot as plt
 
 def save_trajectory_plot(folder, prefix):
 
-    # file = '../dmpbbo/demo_robot/results/trajectory.txt'
-    # fig.suptitle('Optimized trajectory')
-
-
-    # file = '../dmpbbo/demo_robot/trajectory.txt'
-    # fig.suptitle('Train trajectory')
-
-
     file = folder + '/trajectory.txt'
-    fig,(ax1,ax2) = plt.subplots(2)
-    title = prefix + ' trajectory'
-    fig.suptitle(title)
 
     ts = np.loadtxt(file, usecols = 0)
     positions = np.loadtxt(file, usecols = np.arange(1,8))
     velocities = np.loadtxt(file, usecols = np.arange(8,15))
     # accelerations = np.loadtxt(file, usecols = np.arange(15,22))
+
     # impedance = np.loadtxt(file, usecols = np.arange(22,29))
     # imp_vector = np.array([6.0, 6.0, 6.0, 2.5, 1.5, 1.5, 0.5])
     # impedance = impedance * imp_vector
+
+    fig,(ax1,ax2) = plt.subplots(2)
+    title = prefix + ' trajectory'
+    fig.suptitle(title)
 
     fig.subplots_adjust(hspace=.4)
     ax1.plot(ts,positions)
@@ -42,15 +36,18 @@ def save_trajectory_plot(folder, prefix):
     plt.savefig(file_name)
     plt.close()
 
+    # fig, ax3 = plt.subplots()
+    # fig.subplots_adjust(right=0.8) 
     # fig.subplots_adjust(hspace=.4)
-    # ax1.plot(ts,accelerations)
-    # ax1.set_title('Accelerations')
-    # # ax1.legend()
-    # ax2.plot(ts,impedance)
-    # ax2.set_title('Impedance')
-    # # ax2.legend()
-    # plt.show()
 
+    # ax3.plot(ts,impedance)
+    # ax3.set_ylabel('Gain Kp')
+    # ax3.set_xlabel('s')
+    # ax3.set_title('Last rollout impedance gains')
+    # fig.legend(['Joint 1', 'Joint 2', 'Joint 3', 'Joint 4', 'Joint 5', 'Joint 6', 'Joint 7'], loc=7)
+    # file_name = folder + '/' + 'impedance_gains.png'
+    # plt.savefig(file_name)
+    # plt.close()
 
 def save_cost_vars_plots(folder):
     file = folder + '/cost_vars.txt'
