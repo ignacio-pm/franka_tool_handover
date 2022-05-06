@@ -143,6 +143,7 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
 
   // A handover can not be detected until the subscriber commandCallback receives a trajectory
   handover_detected_ = true;
+  first_movement_detected_ = false;
   initial_force_z_ = robot_state.O_F_ext_hat_K[2];
   ROS_INFO("JointImpedanceController: Started"); 
 }
@@ -223,12 +224,16 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
   // msg->impedance.d[0], msg->impedance.d[1], msg->impedance.d[2], msg->impedance.d[3], 
   // msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
   if (ros::Time::now().toSec() - prev_time.toSec() > 5.0) {
+    initial_time = ros::Time::now();
+    first_movement_detected_ = true;
+    ROS_INFO("JointImpedanceController: Detected new movement"); 
+  } 
+  if (first_movement_detected_ == true && ros::Time::now().toSec() - initial_time.toSec() > 2.0) {
     franka::RobotState robot_state = state_handle_->getRobotState();
     initial_force_z_ = robot_state.O_F_ext_hat_K[2];
     handover_detected_ = false;
-    ROS_INFO("JointImpedanceController: Detected new rollout"); 
-    ROS_INFO("Initial force: %f", initial_force_z_);
-  } 
+    first_movement_detected_ = false;
+  }
 
 
   for (size_t i = 0; i < 7; i++)
