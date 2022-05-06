@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 import rospy
@@ -15,7 +15,7 @@ class Trajectory_file(object):
         self.stiffness = np.array([50, 50, 50, 50, 50, 50, 50])
         # '../dmpbbo/demo_robot/trajectory.txt'
         # 'trajectory.txt'
-        open('../dmpbbo/demo_robot/trajectory.txt', 'w').close()
+        open('../dmpbbo/demo_robot/results/experiment_receiver/trajectory.txt', 'w').close()
         # rospy.Subscriber('/franka_state_controller/joint_states', JointState, self.trajectory_callback, tcp_nodelay=True)
         rospy.Subscriber('/franka_state_controller/franka_states', FrankaState, self.state_callback, tcp_nodelay=True)
 
@@ -38,7 +38,7 @@ class Trajectory_file(object):
             trajectory = np.concatenate((self.time_frame, np.concatenate((joint_positions, np.concatenate((joint_velocities, 
                 np.concatenate((joint_accelerations, self.stiffness), axis=None)), axis=None)), axis=None)), axis=None).reshape((1,-1))
 
-            with open('../dmpbbo/demo_robot/trajectory.txt', 'a') as f:
+            with open('../dmpbbo/demo_robot/results/experiment_receiver/trajectory.txt', 'a') as f:
                 np.savetxt(f, trajectory, fmt='%1.6f')
 
 if __name__ == '__main__':

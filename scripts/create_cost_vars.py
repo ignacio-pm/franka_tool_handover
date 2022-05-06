@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import numpy as np
@@ -14,7 +14,7 @@ class Cost_file(object):
         self.file = file_name
         self.n_joints = 7
         self.time_frame = 0.0
-        self.handover_time = 10.0
+        self.handover_time = 8.0
         open(self.file, 'w').close()
         rospy.Subscriber('/JointAS_rec/feedback', JointImpedanceActionFeedback, self.feedback_callback, tcp_nodelay=True)
         rospy.Subscriber('/JointAS_rec/result', JointImpedanceActionResult, self.result_callback, tcp_nodelay=True)
@@ -22,7 +22,7 @@ class Cost_file(object):
 
 
     def feedback_callback(self, msg):
-        # Frequency of the publisher is ~1000 Hz. Not exact to improve plotting
+        # Frequency of the publisher is ~1000 Hz. Not exact but set to 0.001 to improve plotting
         self.time_frame += 0.001
         wrenches = np.array(msg.feedback.cost_vars.wrenches)
         effort = np.array(msg.feedback.cost_vars.effort)
@@ -41,13 +41,14 @@ class Cost_file(object):
 
     def result_callback(self, msg):
         if msg.result.action_completed:
-            # If handover_time = 100 the evaluate plotout will detect that the time of the handover is > max_time
+            # If handover_time = 8.0 the evaluate plotout will detect that the time of the handover is > max_time
             # Therefore, it will be set as not_completed
             last_line = np.full((1,self.length), self.handover_time)
-            with open(self.file, 'a') as f:
-                np.savetxt(f, last_line, fmt='%1.3f')
         else:
-            rospy.loginfo("Action not completed")
+            last_line = np.full((1,self.length), -1.0)
+            rospy.loginfo("Error in the movement of the action server.")
+        with open(self.file, 'a') as f:
+                np.savetxt(f, last_line, fmt='%1.3f')
         rospy.signal_shutdown("The node is shutdown because the action was terminated")
 
     def handover_callback(self, msg):

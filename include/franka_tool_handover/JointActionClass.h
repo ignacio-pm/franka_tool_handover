@@ -19,9 +19,9 @@ class JointAction {
     franka_tool_handover::JointImpedanceActionFeedback feedback_;
     franka_tool_handover::JointImpedanceActionResult result_;
     franka_tool_handover::CostVariables cost_vars_;
+    bool error_detected_;
 
-    
-    ros::Subscriber sub = node_handle_.subscribe("/franka_state_controller_rec/franka_states", 100, 
+    ros::Subscriber sub = node_handle_.subscribe("/franka_state_controller/franka_states", 100, 
         &JointAction::statesCallback, this, ros::TransportHints().reliable().tcpNoDelay());
     ros::Publisher command_pub = node_handle_.advertise<robot_module_msgs::JointCommand>("/joint_command_rec", 100);
   
