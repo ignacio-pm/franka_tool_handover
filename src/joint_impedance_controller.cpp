@@ -56,7 +56,7 @@ bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
     return false;
   }
 
-  double publish_rate(30.0);
+  double publish_rate(100.0);
   if (!node_handle.getParam("publish_rate", publish_rate)) {
     ROS_INFO_STREAM("JointImpedanceController: publish_rate not found. Defaulting to "
                     << publish_rate);
@@ -143,6 +143,7 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
 
   // A handover can not be detected until the subscriber commandCallback receives a trajectory
   handover_detected_ = true;
+  first_movement_detected_ = false;
   initial_force_z_ = robot_state.O_F_ext_hat_K[2];
   ROS_INFO("JointImpedanceController: Started"); 
 }
@@ -155,11 +156,11 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
   double force_z = robot_state.O_F_ext_hat_K[2];
 
   // if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
-  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.5 * weight_tool_) && force_z < 0.0) {
+  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.9 * weight_tool_) && force_z != 0.00) {
     ROS_INFO("JointImpedanceController: Handover detected"); 
     handover_detected_ = true;
     std::string action = "open";
-    hand_object.client(action, 0.1); 
+    hand_object.client(action, 1.5); 
     if (rate_trigger_() && handover_publisher_.trylock()) {
       handover_publisher_.msg_.data = true;
       handover_publisher_.unlockAndPublish();
@@ -223,9 +224,15 @@ void JointImpedanceController::commandCallback(const robot_module_msgs::JointCom
   // msg->impedance.d[0], msg->impedance.d[1], msg->impedance.d[2], msg->impedance.d[3], 
   // msg->impedance.d[4], msg->impedance.d[5], msg->impedance.d[6]);
   if (ros::Time::now().toSec() - prev_time.toSec() > 5.0) {
+    initial_time = ros::Time::now();
+    first_movement_detected_ = true;
+    ROS_INFO("JointImpedanceController: Detected new movement"); 
+  } 
+  if (first_movement_detected_ == true && ros::Time::now().toSec() - initial_time.toSec() > 1.0) {
     franka::RobotState robot_state = state_handle_->getRobotState();
     initial_force_z_ = robot_state.O_F_ext_hat_K[2];
     handover_detected_ = false;
+    first_movement_detected_ = false;
     ROS_INFO("JointImpedanceController: Detected new rollout"); 
     ROS_INFO("Initial force: %f", initial_force_z_);
   } 

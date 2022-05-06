@@ -20,6 +20,7 @@ namespace franka_tool_handover {
   void JointAction::executeCB(const franka_tool_handover::JointImpedanceGoalConstPtr &goal) {
     ros::Rate r(1000);
     bool success = true;
+    error_detected_ = false;
 
     for(const auto &command : goal->joints) {
       if (as_.isPreemptRequested() || !ros::ok())
@@ -38,8 +39,11 @@ namespace franka_tool_handover {
     }
 
     if(success) {
+      if (error_detected_)
+        result_.result.action_completed = false;
+      else
+        result_.result.action_completed = true; 
       result_.result.final_cost = cost_vars_;
-      result_.result.action_completed = true;
       as_.setSucceeded(result_.result);
     }
 
@@ -50,6 +54,9 @@ namespace franka_tool_handover {
     cost_vars_.velocity = msg->dq;
     cost_vars_.wrenches = msg->O_F_ext_hat_K;
     cost_vars_.effort = msg->tau_J;
+    // Robot mode 4 is Reflex error and 7 is automatic error recovery
+    if (msg->robot_mode == 4 || msg->robot_mode == 7)
+      error_detected_ = true;
   }
 
 } // namespace franka_tool_handover

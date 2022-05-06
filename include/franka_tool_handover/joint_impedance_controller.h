@@ -51,8 +51,10 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   double weight_tool_{0.444};
   double initial_force_z_;
   bool handover_detected_;
+  bool first_movement_detected_;
   static constexpr double kDeltaTauMax{1.0};
   ros::Time prev_time;
+  ros::Time initial_time;
 
   std::array<double, 7> k_gains_;
   std::array<double, 7> d_gains_;
