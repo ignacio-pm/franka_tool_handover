@@ -49,6 +49,7 @@ int main(int n_args, char** args)
   }
 
   Trajectory return_traj;
+  // Changes the order of the trajectory by going from the final to the initial position
   return_traj = Trajectory::generateMinJerkTrajectory(trajectory.ts().head(5000), trajectory.final_y(), trajectory.initial_y());
 
   MatrixXd impedance_matrix(1, 7);

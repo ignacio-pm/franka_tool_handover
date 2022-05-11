@@ -155,8 +155,8 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
 
   double force_z = robot_state.O_F_ext_hat_K[2];
 
-  // if(!handover_detected_ && force_z < (- 9.81 * weight_tool_ + initial_force_z_)) {
-  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.9 * weight_tool_) && force_z != 0.00) {
+  // Open the hand if the sensed load of the tool is smaller than 0.2. Achieved by difference with the initial force
+  if(!handover_detected_ && force_z < (initial_force_z_ - 9.81 * 0.8 * weight_tool_) && force_z != 0.00) {
     ROS_INFO("JointImpedanceController: Handover detected"); 
     handover_detected_ = true;
     std::string action = "open";
@@ -165,6 +165,7 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
       handover_publisher_.msg_.data = true;
       handover_publisher_.unlockAndPublish();
     }
+    // This does not work because you can not call the service during the execution
     // franka_msgs::SetLoad setLoaddata;
     // setLoaddata.request.mass = 0.01;
     // setLoadClient.call(setLoaddata);
@@ -183,8 +184,6 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
                           k_gains_[i] * (q_d[i] - robot_state.q[i]) +
                           d_gains_[i] * (dq_d[i] - robot_state.dq[i]);
   }
-  // float d_value = d_gains_[4] * (dq_d[4] - robot_state.dq[4]);
-  // ROS_INFO_COND(d_value > 0.5 or d_value < -0.5 , "Info 4: %.6f, %.6f, %.6f, %3.2f", dq_d[4], robot_state.dq[4], d_gains_[4], d_value);
 
   // Maximum torque difference with a sampling rate of 1 kHz. The maximum torque rate is
   // 1000 * (1 / sampling_time).

@@ -12,6 +12,7 @@ class Trajectory_file(object):
         self.time_frame = 0.0
         self.prev_vel = np.zeros(self.n_joints)
         self.first_time = 0.0
+        # The stiffness is set to 50 because it works better with the exploration factor 10
         self.stiffness = np.array([50, 50, 50, 50, 50, 50, 50])
         # '../dmpbbo/demo_robot/trajectory.txt'
         # 'trajectory.txt'
