@@ -139,8 +139,6 @@ void JointImpedanceController::starting(const ros::Time& /*time*/) {
       d_gains_[i] = d_init_[i];
     }
 
-  ROS_INFO("JointImpedanceController: Tool weight set"); 
-
   // A handover can not be detected until the subscriber commandCallback receives a trajectory
   handover_detected_ = true;
   first_movement_detected_ = false;
