@@ -2,8 +2,12 @@ This repository was started on the context of the Master's thesis "Learning cont
 
 The main branch master contains the controller for a robot in a giver task. The branch demo_receiver has the changes necessary to control a robot that receives an object. 2_robots and combined_node branches implement the use of two robots in the same computer or ROS environment. This branches do not have a working version. 
 
-# How to: installation
+# How to: Install
+The first step to install this package is to set up ROS and install the *franka_ros* package from their [repo](https://frankaemika.github.io/docs/). We used ROS Melodic and Noetic. Compatibility with ROS 2 is not granted.
 
+After installing *franka_ros* package, there is one setting that should be change in the package. In the files *default_combined_controller.yaml* and *default_controller.yaml* and *franka_state_controller.cpp*, the publish rate should be changed from 30 to 100. It should be checked that ROS can handle this rate or similar in the computer.
+
+After this, the following packages have to be cloned in the catkin workspace: [qbsofthand](http://wiki.ros.org/qb_hand/Tutorials/ROS%20Packages%20Installation), [robot_module_msgs](https://github.com/ReconCycle/robot_module_msgs) and this repository. After installing these repositories, initialize and update the submodule dmpbbo of this repository and you are ready to compile the packages with *catkin_make*.
 
 
 # How to: Use
